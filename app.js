@@ -24,36 +24,140 @@ const articleSchema = {
 const Article = mongoose.model("Article", articleSchema);
 
 //API
-//GET
-app.get("/articles", (req, res) => {
-    Article.find(function(err, foundArticles){
-        if(!err){
-            res.send(foundArticles);
-        } else {
-            res.send(err);
-        }
-        
+//Express route chanining
+//requests targeting ALL articles
+// app.route("/articles").get().post().delete();
+app.route("/articles")
+    .get((req, res) => {
+        Article.find(function(err, foundArticles){
+            if(!err){
+                res.send(foundArticles);
+            } else {
+                res.send(err);
+            }
+            
+        });
+    })
+    .post((req,res) => {
+        console.log();
+        console.log();
+    
+        //CREATE in mongoose
+        const newArticle = new Article({
+            title: req.body.title,
+            content: req.body.content
+        });
+    
+        newArticle.save(function(err){
+            if(err){
+            res.send("Successfully added a new article");
+            } else {
+                res.send(err);
+            }
+        });
+    })
+    .delete((req,res) => {
+        Article.deleteMany(function(err){
+            if(!err){
+                res.send("Successfully deleted all articles");
+            } else {
+                res.send(err);
+            };
+        });
     });
-});
+
+
+//GET
+// app.get("/articles", (req, res) => {
+//     Article.find(function(err, foundArticles){
+//         if(!err){
+//             res.send(foundArticles);
+//         } else {
+//             res.send(err);
+//         }
+        
+//     });
+// });
 
 //POST
-app.post("/articles", (req,res) => {
-    console.log();
-    console.log();
+// app.post("/articles", (req,res) => {
+//     console.log();
+//     console.log();
 
-    //CREATE in mongoose
-    const newArticle = new Article({
-        title: req.body.title,
-        content: req.body.content
-    });
+//     //CREATE in mongoose
+//     const newArticle = new Article({
+//         title: req.body.title,
+//         content: req.body.content
+//     });
 
-    newArticle.save(function(err){
-        if(err){
-        res.send("Successfully added a new article");
-        } else {
-            res.send(err);
+//     newArticle.save(function(err){
+//         if(err){
+//         res.send("Successfully added a new article");
+//         } else {
+//             res.send(err);
+//         }
+//     });
+// });
+
+//DELETE
+// app.delete("/articles", (req,res) => {
+//     Article.deleteMany(function(err){
+//         if(!err){
+//             res.send("Successfully deleted all articles");
+//         } else {
+//             res.send(err);
+//         };
+//     });
+// });
+
+
+//requests targeting a specific article
+app.route("/articles/:articleTitle")
+    .get((req,res) => {
+        Article.findOne({title:req.params.articleTitle}, function(err, foundArticle) {
+            if (foundArticle) {
+                res.send(foundArticle);
+            } else {
+                res.send("No matching article was found.");
+            }
+        });
+})
+.put((req,res) => {
+    Article.updateOne(
+        {title:req.params.articleTitle},
+        {title:req.body.title, content:req.body.content},
+        {overwrite:true}, 
+        function(err){
+            if(!err) {
+                res.send("Successfully updated the article");
+            }
         }
-    });
+        );
+    })
+.patch((req,res) => {
+    Article.updateOne(
+        {title:req.params.articleTitle},
+        {$set: req.body},
+        function(err) {
+            if(!err){
+                res.send("Successfully updated the article.");
+            } else {
+                res.send(err);
+            }
+        }
+    );
+})
+.delete((req,res) => {
+    Article.deleteOne(
+        {title:req.params.articleTitle},
+        function(err) {
+            if(!err) {
+                res.send("Successfully deleted the article.");
+            } else {
+                re.send(err);
+            }
+        }
+    );
 });
 
 app.listen(3000, function () {
